@@ -1,0 +1,44 @@
+import math
+from robodk import robolink
+from robodk import robomath
+Connect to RoboDK
+RDK = robolink.Robolink()
+Get robot
+robot = RDK.Item('UR5e')
+if not robot.Valid():
+raise Exception('Robot not found')
+Connect using the robot connection settings saved in RoboDK
+#robot.Connect()
+status, message = robot.ConnectedState()
+if status != robolink.ROBOTCOM_READY:
+raise RuntimeError(f"Robot is not ready: {message}")
+Send subsequent movement commands to the real robot
+RDK.setRunMode(robolink.RUNMODE_RUN_ROBOT)
+Get reference frame (Base)
+frame = RDK.Item('UR5e Base')
+if not frame.Valid():
+raise Exception('Reference frame not found')
+Set robot reference frame
+robot.setPoseFrame(frame)
+Get current TCP pose
+current_pose = robot.Pose()
+Define target position in the frame (mm)
+#X = 133.318
+X = 100
+Y = -491.941
+Z = 487.906
+Rx = -3.142
+Ry = 0
+Rz = 0
+Create target pose: same orientation, new position
+target_pose = robomath.transl(X, Y, Z) * robomath.rotx(Rx) \
+robomath.roty(Ry) \
+robomath.rotz(Rz)
+waypoints = []
+pose = robot.Pose()
+for p in waypoints:
+pose.setPos(p)
+robot.MoveJ(pose)
+
+Move robot in Cartesian space
+robot.MoveL(target_pose)
